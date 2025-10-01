@@ -2,8 +2,8 @@ import sys
 import os
 import random
 import time
-import cv2
-import numpy as np
+import cv2           # NECESSÁRIO PARA O VIDEO RECORDER, NÃO USADO NA IMPLEMENTAÇÃO
+import numpy as np   # NECESSÁRIO PARA O VIDEO RECORDER, NÃO USADO NA IMPLEMENTAÇÃO
 from datetime import datetime
 
 
@@ -127,7 +127,7 @@ class Ambiente:
         # Preenche cada linha para o mesmo tamanho (com X se faltar)
         self.labirinto = [list(l.ljust(self.colunas, 'X')) for l in linhas]
 
-    def encontrar_posicao_agente(self):
+    def encontrar_posicao_agente(self): # Encontrar e definir a posição inicial do agente
         """Encontra posição inicial do agente (E)"""
         for i in range(self.linhas):
             for j in range(self.colunas):
@@ -138,7 +138,7 @@ class Ambiente:
                     self.labirinto[i][j] = '_'  # Substitui entrada por corredor
                     return
 
-    def contar_comida(self):
+    def contar_comida(self): # Contando a quantidade de comida que existe no labirinto
         """Conta total de comida no labirinto"""
         self.total_comida = 0
         for i in range(self.linhas):
@@ -147,7 +147,7 @@ class Ambiente:
                     self.total_comida += 1
         self.comida_restante = self.total_comida
 
-    def obter_sensor(self):
+    def obter_sensor(self): # Retorna o valor da células ao redor do agente
         """Retorna matriz 3x3 do sensor ao redor do agente"""
         sensor = [['X' for _ in range(3)] for _ in range(3)]
 
@@ -229,7 +229,7 @@ class Ambiente:
                 else:
                     linha_chars.append(self.labirinto[i][j])
             linhas.append(''.join(linha_chars))
-        # Imprime tudo de uma vez e força flush para evitar buffering
+        # Imprime tudo de uma vez e força flush para evitar buffering evitando problema na exibição via console
         print('\n'.join(linhas), flush=True)
         print(flush=True)
         
@@ -275,7 +275,7 @@ class Agente:
         step_info = f"Inicio - Comida: {self.comida_coletada}/{self.comida_esperada}"
         self.ambiente.imprimir_labirinto(step_info)
 
-        # Continua até que TODA comida tenha sido coletada E o agente esteja na saída
+        # Loop Principal do agente
         while not (self.ambiente.toda_comida_coletada() and self.ambiente.esta_na_saida()):
             self.iteracoes += 1
 
@@ -304,7 +304,7 @@ class Agente:
                 if self.ambiente.esta_na_saida() and not self.saida_conhecida:
                     self.posicao_saida = posicao_atual
                     self.saida_conhecida = True
-                    print(f"🎯 SAÍDA ENCONTRADA e memorizada na posição: {posicao_atual}!", flush=True)
+                    print(f"SAÍDA ENCONTRADA e memorizada na posição: {posicao_atual}!", flush=True)
 
                 # Verifica se comida foi coletada
                 comida_restante_atual = self.ambiente.obter_comida_restante()
@@ -370,7 +370,7 @@ class Agente:
                 if conteudo_celula == 'S' and not self.saida_conhecida:
                     self.posicao_saida = pos
                     self.saida_conhecida = True
-                    print(f"🎯 SAÍDA DETECTADA pelo sensor na posição: {pos}!", flush=True)
+                    print(f"SAÍDA DETECTADA pelo sensor na posição: {pos}!", flush=True)
 
     def obter_posicao_atual(self):
         """Obtém posição atual do agente do ambiente"""
@@ -399,7 +399,7 @@ class Agente:
         if self.ambiente.toda_comida_coletada():
             # FUNCIONALIDADE MELHORADA: Usa saída memorizada se disponível
             if self.saida_conhecida and self.posicao_saida:
-                print("🏃‍♂️ Toda comida coletada! Dirigindo-se à saída memorizada...", flush=True)
+                print("Toda comida coletada! Dirigindo-se à saída memorizada...", flush=True)
                 melhor_direcao = self.encontrar_direcao_para_posicao_alvo(posicao_atual, self.posicao_saida)
                 if melhor_direcao and self.pode_mover_na_direcao(sensor, melhor_direcao):
                     return melhor_direcao
@@ -525,14 +525,15 @@ class Agente:
         print(f"PONTUAÇÃO TOTAL: {pontuacao_total}", flush=True)
 
         if self.ambiente.toda_comida_coletada() and self.ambiente.esta_na_saida():
-            print("✅ SUCESSO: Toda comida coletada e chegou na saída!", flush=True)
+            print(" SUCESSO: Toda comida coletada e chegou na saída!", flush=True)
         elif self.ambiente.toda_comida_coletada():
-            print("⚠️ Sucesso parcial: Toda comida coletada mas não chegou na saída", flush=True)
+            print(" Sucesso parcial: Toda comida coletada mas não chegou na saída", flush=True)
         else:
             restante = self.ambiente.obter_comida_restante()
-            print(f"❌ Missão incompleta: {restante} comida restante", flush=True)
+            print(f" Missão incompleta: {restante} comida restante", flush=True)
 
 
+# Criação de um arquivo de labirinto exemplo
 def criar_labirinto_exemplo():
     """Cria um arquivo de labirinto exemplo para teste"""
     labirinto_exemplo = """XXXXXXXXX
@@ -549,6 +550,7 @@ XXXXXXSXX"""
         f.write(labirinto_exemplo)
 
 
+# Fluxo principal
 def main():
     try:
         # Verifica se nome do arquivo foi fornecido como argumento
@@ -602,8 +604,9 @@ def main():
         # Finaliza gravação de vídeo
         if video_recorder:
             video_recorder.finalize()
-            print(f"\n✅ Vídeo da execução salvo como: {nome_video}")
+            print(f"\n Vídeo da execução salvo como: {nome_video}")
 
+    # Tratamento de possívels erros
     except FileNotFoundError:
         print(f"Erro: Não foi possível encontrar o arquivo do labirinto", flush=True)
         print("\nFormato do arquivo labirinto.txt:", flush=True)
